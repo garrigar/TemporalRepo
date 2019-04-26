@@ -6,11 +6,13 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 public class FileListAdapter extends BaseAdapter {
 
     private Context context;
     private ArrayList<String> fileNames;
+    private Set<Integer> pickedFiles;
 
     public FileListAdapter(Context context) {
         // Fill out the field with empty list for the first time in order to avoid exception

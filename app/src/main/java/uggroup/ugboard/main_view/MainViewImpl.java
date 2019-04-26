@@ -28,6 +28,12 @@ public class MainViewImpl implements MainView {
         this.fileList = this.rootView.findViewById(R.id.fileListListView);
         this.fileListAdapter = new FileListAdapter(context);
         this.fileList.setAdapter(this.fileListAdapter);
+        this.fileList.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return false;
+            }
+        });
     }
 
     @Override

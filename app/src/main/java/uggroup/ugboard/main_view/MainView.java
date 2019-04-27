@@ -9,6 +9,7 @@ public interface MainView extends GeneralView {
     void setFolderName(String name);
     void setFileClickListener(FileClickListener listener);
     void setFileLongClickListener(FileLongClickListener listener);
+    void showDialogOptionsMenu();
 
     interface FileClickListener {
         void onFileClicked(String fileName);

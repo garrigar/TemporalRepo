@@ -1,23 +1,23 @@
-package uggroup.ugboard.main_view.fragments;
+package uggroup.ugboard.main_view.option_menu_dialog;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.List;
 
+import uggroup.ugboard.main_view.option_menu_dialog.view.OptionsMenuView;
+import uggroup.ugboard.main_view.option_menu_dialog.view.OptionsMenuViewImpl;
+
 public class OptionsMenuDialogImpl extends DialogFragment implements OptionsMenuDialog {
 
     private Context context;
     private FragmentManager manager;
     private OptionsMenuView optionsMenuView;
-    private List<String> options;
 
     static OptionsMenuDialog newInstance() {
         return new OptionsMenuDialogImpl();
@@ -25,7 +25,7 @@ public class OptionsMenuDialogImpl extends DialogFragment implements OptionsMenu
 
     @Override
     public void setOptionsList(List<String> options) {
-        this.options = options;
+        this.optionsMenuView.setOptionsList(options);
     }
 
     @Override
@@ -39,11 +39,16 @@ public class OptionsMenuDialogImpl extends DialogFragment implements OptionsMenu
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        this.optionsMenuView = new OptionsMenuViewImpl(getContext(), null);
+        this.manager = getFragmentManager();
+        this.context = getContext();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Context context = inflater.getContext();
-        OptionsMenuView menuView = new OptionsMenuViewImpl(context, null);
-        menuView.setOptionsList(this.options);
-        return menuView.getRootView();
+        return this.optionsMenuView.getRootView();
     }
 }

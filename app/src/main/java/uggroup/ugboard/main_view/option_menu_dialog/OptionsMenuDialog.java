@@ -1,4 +1,4 @@
-package uggroup.ugboard.main_view.fragments;
+package uggroup.ugboard.main_view.option_menu_dialog;
 
 import android.support.v4.app.FragmentManager;
 

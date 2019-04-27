@@ -1,15 +1,18 @@
 package uggroup.ugboard.main_view;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import uggroup.ugboard.GeneralView;
 
-public interface MainView extends GeneralView {
-    void setFileList(ArrayList<String> fileNames);
+public interface FileManagerView extends GeneralView {
+    void setFileList(List<String> fileNames);
+    void setOptionsList(List<String> fileOptions);
     void setFolderName(String name);
+    void showDialogOptionsMenu();
+
     void setFileClickListener(FileClickListener listener);
     void setFileLongClickListener(FileLongClickListener listener);
-    void showDialogOptionsMenu();
+
 
     interface FileClickListener {
         void onFileClicked(String fileName);

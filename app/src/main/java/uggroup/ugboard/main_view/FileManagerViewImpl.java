@@ -10,15 +10,14 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.zip.Inflater;
+import java.util.List;
 
 import uggroup.ugboard.R;
 import uggroup.ugboard.main_view.file_list.FileListAdapter;
-import uggroup.ugboard.main_view.fragments.OptionsMenuDialog;
-import uggroup.ugboard.main_view.fragments.OptionsMenuDialogImpl;
+import uggroup.ugboard.main_view.option_menu_dialog.OptionsMenuDialog;
+import uggroup.ugboard.main_view.option_menu_dialog.OptionsMenuDialogImpl;
 
-public class MainViewImpl implements MainView {
+public class FileManagerViewImpl implements FileManagerView {
 
     private Context context;
     private View rootView;
@@ -29,7 +28,7 @@ public class MainViewImpl implements MainView {
     // For the OptionsMenuDialog because it is fragment.
     private FragmentManager manager;
 
-    public MainViewImpl(Context context, ViewGroup container, FragmentManager manager) {
+    public FileManagerViewImpl(Context context, ViewGroup container, FragmentManager manager) {
         this.context = context;
         this.rootView = LayoutInflater.from(context).inflate(R.layout.activity_main, container);
         this.folderName = this.rootView.findViewById(R.id.folderNameTxt);
@@ -41,9 +40,14 @@ public class MainViewImpl implements MainView {
     }
 
     @Override
-    public void setFileList(ArrayList<String> fileNames) {
+    public void setFileList(List<String> fileNames) {
         this.fileListAdapter.setFileNames(fileNames);
         this.fileListAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void setOptionsList(List<String> fileOptions) {
+        this.optionsMenuDialog.setOptionsList(fileOptions);
     }
 
     @Override

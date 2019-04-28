@@ -20,8 +20,8 @@ public class OptionsMenuViewImpl implements OptionsMenuView {
     private ListView optionsListView;
     private OptionListAdapter optionListAdapter;
 
-    public OptionsMenuViewImpl(Context context, ViewGroup parent) {
-        this.rootView = LayoutInflater.from(context).inflate(R.layout.option_menu_fragment, parent);
+    public OptionsMenuViewImpl(LayoutInflater inflater, ViewGroup parent) {
+        this.rootView = inflater.inflate(R.layout.option_menu_fragment, parent);
         this.context = context;
         this.optionsListView = this.rootView.findViewById(R.id.optionsListView);
         this.optionListAdapter = new OptionListAdapter(context);

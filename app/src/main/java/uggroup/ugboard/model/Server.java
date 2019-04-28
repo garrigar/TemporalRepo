@@ -18,14 +18,14 @@ public class Server {
 
     private Server() {
         this.fileNames = new ArrayList<>();
-        fileNames.add("File 1");
-        fileNames.add("File 2");
-        fileNames.add("File 3");
+        this.fileNames.add("File 1");
+        this.fileNames.add("File 2");
+        this.fileNames.add("File 3");
 
         this.fileActions = new ArrayList<>();
-        fileNames.add("Action 1");
-        fileNames.add("Action 2");
-        fileNames.add("Action 3");
+        this.fileActions.add("Action 1");
+        this.fileActions.add("Action 2");
+        this.fileActions.add("Action 3");
     }
 
     public ArrayList<String> getFileNames() {

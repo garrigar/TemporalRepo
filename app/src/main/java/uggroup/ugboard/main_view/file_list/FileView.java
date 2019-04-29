@@ -1,7 +1,7 @@
 package uggroup.ugboard.main_view.file_list;
 
-import uggroup.ugboard.GeneralView;
+import uggroup.ugboard.MVPView;
 
-public interface FileView extends GeneralView {
+public interface FileView extends MVPView {
     void setName(String name);
 }

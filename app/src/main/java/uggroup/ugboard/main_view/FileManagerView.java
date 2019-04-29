@@ -2,13 +2,14 @@ package uggroup.ugboard.main_view;
 
 import java.util.List;
 
-import uggroup.ugboard.GeneralView;
+import uggroup.ugboard.CoreView;
+import uggroup.ugboard.MVPView;
+import uggroup.ugboard.main_view.option_menu_dialog.OptionsMenuDialog;
 
-public interface FileManagerView extends GeneralView {
+public interface FileManagerView extends CoreView, OptionsMenuDialog {
     void setFileList(List<String> fileNames);
     void setOptionsList(List<String> fileOptions);
     void setFolderName(String name);
-    void showDialogOptionsMenu();
 
     void setFileClickListener(FileClickListener listener);
     void setFileLongClickListener(FileLongClickListener listener);

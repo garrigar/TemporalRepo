@@ -2,6 +2,6 @@ package uggroup.ugboard;
 
 import android.view.View;
 
-public interface GeneralView {
+public interface MVPView {
     View getRootView();
 }

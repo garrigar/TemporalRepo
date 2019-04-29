@@ -15,6 +15,7 @@ public class Server {
 
     private ArrayList<String> fileNames;
     private ArrayList<String> fileActions;
+    private String currentFolder;
 
     private Server() {
         this.fileNames = new ArrayList<>();
@@ -26,6 +27,8 @@ public class Server {
         this.fileActions.add("Action 1");
         this.fileActions.add("Action 2");
         this.fileActions.add("Action 3");
+
+        this.currentFolder = "UGBoardTestFolder";
     }
 
     public ArrayList<String> getFileNames() {
@@ -33,5 +36,8 @@ public class Server {
     }
     public ArrayList<String> getFileActions() {
         return this.fileActions;
+    }
+    public String getCurrentFolder() {
+        return this.currentFolder;
     }
 }

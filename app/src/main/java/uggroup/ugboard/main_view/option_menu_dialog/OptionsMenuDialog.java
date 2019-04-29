@@ -4,10 +4,13 @@ import android.support.v4.app.FragmentManager;
 
 import java.util.List;
 
-public interface OptionsMenuDialog {
+import uggroup.ugboard.LoggedInstance;
+
+public interface OptionsMenuDialog extends LoggedInstance {
     void setOptionsList(List<String> options);
+    void setOptionsTitle(String title);
     void setOnOptionClickListener(OnOptionClickListener listener);
-    void showMenu(FragmentManager manager, String tag);
+    void showOptionsMenu(FragmentManager manager, String tag);
 
     interface OnOptionClickListener {
         void onOptionClicked(String option);

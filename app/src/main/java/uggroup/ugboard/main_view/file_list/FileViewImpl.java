@@ -8,6 +8,11 @@ import android.widget.TextView;
 
 import uggroup.ugboard.R;
 
+
+/*
+Represents how file actually looks. Can be modified in the future for different
+types of files: images, folders, etc.
+ */
 public class FileViewImpl implements FileView {
     private Context context;
     private View rootView;

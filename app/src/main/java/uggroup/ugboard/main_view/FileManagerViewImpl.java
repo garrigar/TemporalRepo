@@ -141,7 +141,7 @@ public class FileManagerViewImpl implements FileManagerView {
     public void showToast(String msg, int length) {
         // If there is another toast is visible, we cancel it and show new one
         if(this.toast.getView().getWindowVisibility() == View.VISIBLE) {
-            Log.i(this.logTag, "There is toast is still visible");
+            Log.i(this.logTag, "There is a toast is still visible");
             this.toast.cancel();
         }
         this.toast.setDuration(length);

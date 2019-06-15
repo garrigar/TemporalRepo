@@ -12,6 +12,10 @@ import java.util.Set;
 
 import uggroup.ugboard.LoggedInstance;
 
+/*
+Responsible for the controlling the list of the files in th application. No need in
+changing this class, it's sufficient.
+ */
 public class FileListAdapter extends BaseAdapter implements LoggedInstance {
 
     private Context context;

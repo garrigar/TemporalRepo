@@ -13,6 +13,7 @@ import java.util.List;
 
 import uggroup.ugboard.LoggedInstance;
 
+
 public class OptionsMenuDialogImpl extends DialogFragment implements OptionsMenuDialog {
 
     static OptionsMenuDialog newInstance() {

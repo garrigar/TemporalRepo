@@ -1,8 +1,10 @@
-package uggroup.ugboard.main_view;
+package uggroup.ugboard.fragments.file_manager_view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,9 +17,9 @@ import android.widget.Toast;
 import java.util.List;
 
 import uggroup.ugboard.R;
-import uggroup.ugboard.main_view.file_list.FileListAdapter;
-import uggroup.ugboard.main_view.option_menu_dialog.OptionsMenuDialog;
-import uggroup.ugboard.main_view.option_menu_dialog.OptionsMenuDialogImpl;
+import uggroup.ugboard.fragments.file_manager_view.file_list.FileListAdapter;
+import uggroup.ugboard.fragments.file_manager_view.option_menu_dialog.OptionsMenuDialog;
+import uggroup.ugboard.fragments.file_manager_view.option_menu_dialog.OptionsMenuDialogImpl;
 
 public class FileManagerViewImpl implements FileManagerView {
 
@@ -25,18 +27,21 @@ public class FileManagerViewImpl implements FileManagerView {
     private String logTag = this.defaultLogTag;
 
     private Context context;
+    private Toolbar folderNameBar;
     private View rootView;
-    private TextView folderName;
     private ListView fileList;
     private FileListAdapter fileListAdapter;
     private OptionsMenuDialog optionsMenuDialog;
     private Toast toast;
+    private SwipeRefreshLayout swipeRefresh;
 
     @SuppressLint("ShowToast")
     public FileManagerViewImpl(Context context, ViewGroup container) {
         this.context = context;
-        this.rootView = LayoutInflater.from(context).inflate(R.layout.activity_main, container);
-        this.folderName = this.rootView.findViewById(R.id.folderNameTxt);
+        this.rootView = LayoutInflater.from(context).inflate(R.layout.file_manager, container, false);
+        this.folderNameBar = this.rootView.findViewById(R.id.folderNameBar);
+        // Set default value to folderName so that we can see it works.
+        this.folderNameBar.setTitle("No folder name");
         this.fileList = this.rootView.findViewById(R.id.fileListListView);
         this.fileListAdapter = new FileListAdapter(context);
         this.fileListAdapter.setLogTag(
@@ -49,6 +54,7 @@ public class FileManagerViewImpl implements FileManagerView {
         this.optionsMenuDialog.setLogTag(
                 this.logTag+"."+this.optionsMenuDialog.getDefaultLogTag()
         );
+        this.swipeRefresh = this.rootView.findViewById(R.id.swiperefresh);
 
         Log.i(this.logTag, "FileManagerViewImpl is instantiated");
     }
@@ -92,7 +98,7 @@ public class FileManagerViewImpl implements FileManagerView {
     @Override
     public void setFolderName(String name) {
 
-        this.folderName.setText(name);
+        this.folderNameBar.setTitle(name);
         Log.i(this.logTag, "setFolderName call");
     }
 
@@ -129,6 +135,16 @@ public class FileManagerViewImpl implements FileManagerView {
                 }
         );
         Log.i(this.logTag, "setFileLongClickListener call");
+    }
+
+    @Override
+    public void setRefreshRequestListener(final RefreshRequestListener listener) {
+        this.swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                listener.onRefreshRequested();
+            }
+        });
     }
 
     @Override

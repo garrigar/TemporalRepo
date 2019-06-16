@@ -1,4 +1,4 @@
-package uggroup.ugboard.model;
+package uggroup.ugboard.models;
 
 import uggroup.ugboard.presenter.OnlinePresenter;
 

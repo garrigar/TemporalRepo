@@ -1,4 +1,4 @@
-package uggroup.ugboard.main_view.file_list;
+package uggroup.ugboard.fragments.file_manager_view.file_list;
 
 import android.content.Context;
 import android.util.Log;
@@ -8,7 +8,6 @@ import android.widget.BaseAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import uggroup.ugboard.LoggedInstance;
 

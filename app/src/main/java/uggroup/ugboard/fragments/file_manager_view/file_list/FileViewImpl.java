@@ -1,4 +1,4 @@
-package uggroup.ugboard.main_view.file_list;
+package uggroup.ugboard.fragments.file_manager_view.file_list;
 
 import android.content.Context;
 import android.view.LayoutInflater;

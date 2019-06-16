@@ -1,4 +1,4 @@
-package uggroup.ugboard.main_view.option_menu_dialog;
+package uggroup.ugboard.fragments.file_manager_view.option_menu_dialog;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -10,8 +10,6 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import uggroup.ugboard.LoggedInstance;
 
 
 public class OptionsMenuDialogImpl extends DialogFragment implements OptionsMenuDialog {

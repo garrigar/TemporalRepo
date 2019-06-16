@@ -9,8 +9,8 @@ import java.util.List;
 import uggroup.ugboard.R;
 import uggroup.ugboard.fragments.FileManager;
 import uggroup.ugboard.fragments.FileManagerFragment;
-import uggroup.ugboard.models.OnlineModel;
-import uggroup.ugboard.models.Server;
+import uggroup.ugboard.models.online_model.FileItem;
+import uggroup.ugboard.models.online_model.OnlineModel;
 
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -100,13 +100,13 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void updateFileList(List<Object> fileList, String folderName) {
+    public void updateContents(List<FileItem> fileList, String folderName) {
         // TODO
         this.fileManager.setFolderName(folderName);
     }
 
     @Override
-    public void showToast(String msg, int length) {
+    public void showToast(String msg, boolean isLong) {
         // TODO
     }
 

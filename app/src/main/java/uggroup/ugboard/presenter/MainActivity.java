@@ -2,8 +2,10 @@ package uggroup.ugboard.presenter;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import uggroup.ugboard.R;
@@ -11,6 +13,7 @@ import uggroup.ugboard.fragments.FileManager;
 import uggroup.ugboard.fragments.FileManagerFragment;
 import uggroup.ugboard.models.online_model.FileItem;
 import uggroup.ugboard.models.online_model.OnlineModel;
+import uggroup.ugboard.models.online_model.OnlineModelImpl;
 
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -22,7 +25,8 @@ import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 
 public class MainActivity extends AppCompatActivity implements
-        OnlinePresenter, FileManager.FileClickListener, FileManager.OnOptionClickListener {
+        OnlinePresenter, FileManager.FileClickListener, FileManager.OnOptionClickListener, FileManager.GetBackListener {
+
 
     // Keep the fragment inside though it's the same
     // thing as FileManager. We need it for convenient
@@ -30,6 +34,9 @@ public class MainActivity extends AppCompatActivity implements
     FileManagerFragment fileManagerFragment;
     FileManager fileManager;
     OnlineModel onlineModel;
+
+    // For later responses to the online model
+    ArrayList<FileItem> fileList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +48,30 @@ public class MainActivity extends AppCompatActivity implements
         this.fileManager = this.fileManagerFragment;
         this.fileManager.setFileClickListener(this);
         this.fileManager.setOnOptionClickListener(this);
-
+        this.fileManager.setGetBackListener(this);
+        ArrayList<String> options =  new ArrayList<>();
+        options.add("Open");
+        options.add("Rename");
+        options.add("Delete");
+        this.fileManager.setOptionsList(options);
         // We attach the file manager first by default.
         attachFileManager();
+        setUpNavigationDrawer();
+
+        this.onlineModel = OnlineModelImpl.getInstance();
+        this.onlineModel.setOnlinePresenter(this);
+       // this.onlineModel.startExploring();
+
+
+    }
+
+    @Override
+    protected void onResumeFragments() {
+        // We need to call startExploring method here because
+        // the onlineModel calls updating the fileList too early,
+        // e.c. when the view is not created yet.
+        super.onResumeFragments();
+        this.onlineModel.startExploring();
     }
 
     private void attachFileManager() {
@@ -101,8 +129,15 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void updateContents(List<FileItem> fileList, String folderName) {
-        // TODO
+        Log.i("Online Presenter", "Update contents call.");
+        this.fileList = new ArrayList<>(fileList);
+        ArrayList<String> files = new ArrayList<>();
+        for(FileItem a: fileList) {
+            files.add(a.getName());
+        }
+        this.fileManager.setFileList(files);
         this.fileManager.setFolderName(folderName);
+
     }
 
     @Override
@@ -112,12 +147,29 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onFileClicked(String fileName) {
-        // TODO
-        //this.onlineModel.getAccess();
+        for(FileItem item: this.fileList)
+            if(item.getName().equals(fileName))
+                this.onlineModel.getAccess(item);
     }
 
     @Override
     public void onOptionClicked(String option, String fileName) {
-        // TODO
+        FileItem item = null;
+        for(FileItem item_: this.fileList)
+            if(item_.getName().equals(fileName))
+                item = item_;
+
+        if(option == "Open")
+            this.onlineModel.getAccess(item);
+        if(option == "Delete")
+            this.onlineModel.delete(item);
+        if(option == "Rename")
+            this.onlineModel.rename(item);
+
+    }
+
+    @Override
+    public void onGetBack() {
+        this.onlineModel.goUp();
     }
 }

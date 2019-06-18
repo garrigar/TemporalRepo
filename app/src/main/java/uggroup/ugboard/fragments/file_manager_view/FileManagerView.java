@@ -13,6 +13,7 @@ public interface FileManagerView extends CoreView, OptionsMenuDialog {
     void setFileClickListener(FileClickListener listener);
     void setFileLongClickListener(FileLongClickListener listener);
     void setRefreshRequestListener(RefreshRequestListener listener);
+    void setGetBackListener(GetBackListener listener);
 
 
     interface FileClickListener {
@@ -25,5 +26,9 @@ public interface FileManagerView extends CoreView, OptionsMenuDialog {
 
     interface RefreshRequestListener {
         void onRefreshRequested();
+    }
+
+    interface GetBackListener {
+        void onGetBack();
     }
 }

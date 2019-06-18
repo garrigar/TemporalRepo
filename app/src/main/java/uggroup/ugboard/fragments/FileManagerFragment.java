@@ -1,6 +1,7 @@
 package uggroup.ugboard.fragments;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,12 +18,16 @@ import uggroup.ugboard.models.Server;
 
 
 public class FileManagerFragment extends Fragment implements FileManagerView.FileLongClickListener, FileManagerView.FileClickListener, OptionsMenuDialog.OnOptionClickListener,
- FileManager{
+ FileManager, FileManagerView.RefreshRequestListener, FileManagerView.GetBackListener {
 
     FileManagerView mainView;
     FileLongClickListener fileLongClickListener;
     FileClickListener fileClickListener;
     OnOptionClickListener optionClickListener;
+    RefreshRequestListener refreshRequestListener;
+    GetBackListener getBackListener;
+
+    List<String> fileOptions;
 
     // This is a stupid fix for longClick and optionClick methods.
     // The only moment when we want to use longClick is to invoke
@@ -35,16 +40,29 @@ public class FileManagerFragment extends Fragment implements FileManagerView.Fil
     String longClickedFile; // Name of the `long clicked file`
 
     public FileManagerFragment() {
-        // Required empty public constructor
+        // Required empty constructor
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if(this.mainView != null)
+            return this.mainView.getRootView();
         this.mainView = new FileManagerViewImpl(getContext(), container);
         this.mainView.setFileClickListener(this);
         this.mainView.setFileLongClickListener(this);
         this.mainView.setOnOptionClickListener(this);
+        this.mainView.setRefreshRequestListener(this);
+        this.mainView.setGetBackListener(this);
+        if(this.fileOptions != null) {
+            this.mainView.setOptionsList(this.fileOptions);
+        }
         Log.i("UGBoard", "FileManager fragment created the view!");
         return this.mainView.getRootView();
     }
@@ -76,12 +94,20 @@ public class FileManagerFragment extends Fragment implements FileManagerView.Fil
 
     @Override
     public void setFileList(List<String> fileNames) {
+        if(this.mainView == null)
+            return;
         this.mainView.setFileList(fileNames);
     }
 
     @Override
     public void setOptionsList(List<String> fileOptions) {
-        this.mainView.setOptionsList(fileOptions);
+        // mainView might not be initialized yet, so we
+        // save the file options in order to set them later
+        if(this.mainView != null) {
+            this.mainView.setOptionsList(fileOptions);
+            return;
+        }
+        this.fileOptions = fileOptions;
     }
 
     @Override
@@ -102,5 +128,27 @@ public class FileManagerFragment extends Fragment implements FileManagerView.Fil
     @Override
     public void setOnOptionClickListener(OnOptionClickListener listener) {
         this.optionClickListener = listener;
+    }
+
+    @Override
+    public void setRefreshRequestListener(RefreshRequestListener listener) {
+        this.refreshRequestListener = listener;
+    }
+
+    @Override
+    public void setGetBackListener(GetBackListener listener) {
+        this.getBackListener = listener;
+    }
+
+    @Override
+    public void onRefreshRequested() {
+        if(this.refreshRequestListener != null)
+            this.refreshRequestListener.onRefreshRequested();
+    }
+
+    @Override
+    public void onGetBack() {
+        if(this.getBackListener != null)
+            this.getBackListener.onGetBack();
     }
 }

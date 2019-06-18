@@ -22,7 +22,8 @@ public interface FileManager {
     @Deprecated
     void setFileLongClickListener(FileLongClickListener listener);
     void setOnOptionClickListener(OnOptionClickListener listener);
-
+    void setRefreshRequestListener(RefreshRequestListener listener);
+    void setGetBackListener(GetBackListener listener);
 
 
     interface OnOptionClickListener {
@@ -35,5 +36,13 @@ public interface FileManager {
 
     interface FileLongClickListener {
         void onFileLongClicked(String fileName);
+    }
+
+    interface RefreshRequestListener {
+        void onRefreshRequested();
+    }
+
+    interface GetBackListener {
+        void onGetBack();
     }
 }

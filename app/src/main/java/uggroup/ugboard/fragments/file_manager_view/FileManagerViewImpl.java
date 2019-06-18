@@ -40,6 +40,8 @@ public class FileManagerViewImpl implements FileManagerView {
         this.context = context;
         this.rootView = LayoutInflater.from(context).inflate(R.layout.file_manager, container, false);
         this.folderNameBar = this.rootView.findViewById(R.id.folderNameBar);
+        this.folderNameBar.setNavigationIcon(R.drawable.ic_menu_revert);
+
         // Set default value to folderName so that we can see it works.
         this.folderNameBar.setTitle("No folder name");
         this.fileList = this.rootView.findViewById(R.id.fileListListView);
@@ -143,6 +145,16 @@ public class FileManagerViewImpl implements FileManagerView {
             @Override
             public void onRefresh() {
                 listener.onRefreshRequested();
+            }
+        });
+    }
+
+    @Override
+    public void setGetBackListener(final GetBackListener listener) {
+        this.folderNameBar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.onGetBack();
             }
         });
     }

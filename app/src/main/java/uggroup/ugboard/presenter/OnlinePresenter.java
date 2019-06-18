@@ -4,7 +4,12 @@ import android.content.Context;
 
 import java.util.List;
 
+import uggroup.ugboard.models.online_model.FileItem;
+
 public interface OnlinePresenter {
-    void updateFileList(List<Object>fileList, String folderName);
-    void showToast(String msg, int length);
+
+    void updateContents(List<FileItem> newList, String newFolderName);
+
+    void showToast(String text, boolean isLong);
+
 }

@@ -12,4 +12,6 @@ public interface OnlinePresenter {
 
     void showToast(String text, boolean isLong);
 
+    Context getContext();
+
 }

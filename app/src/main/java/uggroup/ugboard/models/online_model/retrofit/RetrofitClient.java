@@ -16,7 +16,7 @@ public class RetrofitClient {
 
     private RetrofitClient() {
         object = new Retrofit.Builder()
-                .baseUrl("https://ugd-backend.herokuapp.com/cloud/")
+                .baseUrl(IUGDBackend.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();

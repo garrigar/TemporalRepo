@@ -1,9 +1,15 @@
 package uggroup.ugboard.presenter;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements
         this.onlineModel.setOnlinePresenter(this);
        // this.onlineModel.startExploring();
 
-
+        requestPermissions();
     }
 
     @Override
@@ -143,6 +149,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void showToast(String msg, boolean isLong) {
         // TODO
+        Toast.makeText(this, msg, (isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT)).show();
     }
 
     @Override
@@ -171,5 +178,28 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onGetBack() {
         this.onlineModel.goUp();
+    }
+
+    @Override
+    public Context getContext() {
+        return getApplicationContext(); // exactly application context, not other else context
+    }
+
+    // Requests WRITE_EXTERNAL_STORAGE permission
+    private void requestPermissions() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            int PERMISSION_REQUEST_CODE = 1;
+            if (ContextCompat.checkSelfPermission(MainActivity.this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                    PERMISSION_REQUEST_CODE);
+                        }
+            }
+        }
     }
 }

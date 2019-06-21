@@ -1,8 +1,13 @@
 package uggroup.ugboard.models.online_model;
 
+import android.app.DownloadManager;
+import android.content.Context;
+import android.net.Uri;
+import android.os.Environment;
 import android.util.Log;
 import android.util.SparseArray;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,10 +22,14 @@ import uggroup.ugboard.presenter.OnlinePresenter;
 
 public class OnlineModelImpl implements OnlineModel {
 
-    private static final int MAX_TIMEOUT_MS = 30000;
+    private static final int MAX_TIMEOUT_MS = 15000;
+
+    private static final String LOCAL_FOLDER_NAME = "UGBoard";
 
     private CompositeDisposable compositeDisposable;
     private IUGDBackend mService;
+
+    private DownloadManager downloadManager;
 
     private OnlinePresenter presenter;
     private SparseArray<FileItem> itemsMap;
@@ -51,6 +60,7 @@ public class OnlineModelImpl implements OnlineModel {
     @Override
     public void setOnlinePresenter(OnlinePresenter onlinePresenter) {
         presenter = onlinePresenter;
+        downloadManager = (DownloadManager) presenter.getContext().getSystemService(Context.DOWNLOAD_SERVICE);
     }
 
     @Override
@@ -64,7 +74,7 @@ public class OnlineModelImpl implements OnlineModel {
 
     @Override
     public void goUp() {
-        if (currentItemId == 1) return;
+        if (currentItemId == 1 || currentItemId == 0) return;
         currentItemId = itemsMap.get(currentItemId).getParentId();
         pathStack.pop();
         presenter.updateContents(getCurrentFiles(), getCurrentPath());
@@ -79,8 +89,46 @@ public class OnlineModelImpl implements OnlineModel {
             pathStack.push(fileItem.getName());
             presenter.updateContents(getCurrentFiles(), getCurrentPath());
         } else {
-            presenter.showToast("GOTTA be downloading this file in future", true);
+            //presenter.showToast("GOTTA be downloading this file in future", true);
+
+            if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+                Log.d("DownloadMgr", "Memory not available");
+                presenter.showToast("Memory not available", true);
+                return;
+            }
+
+            File workpath = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
+                    + "/" + LOCAL_FOLDER_NAME);
+            String filename = fileItem.getName();
+            File outputFile = new File(workpath, filename);
+            int k = 0;
+            while (outputFile.exists()){
+                k++;
+                filename = renameWithNumber(fileItem.getName(), k);
+                outputFile = new File(workpath, filename);
+            }
+            downloadManager.enqueue(
+                    new DownloadManager.Request(
+                            Uri.parse(IUGDBackend.DOWNLOAD_BASE_URL + fileItem.getId())
+                    )
+                            .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI |
+                                    DownloadManager.Request.NETWORK_MOBILE)
+                            .setAllowedOverRoaming(false)
+                            .setTitle(filename)
+                            .setDescription("Downloading")
+                            .setMimeType(fileItem.getType())
+                            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                            .setDestinationUri(Uri.parse("file:" + outputFile.getAbsolutePath()))
+            );
         }
+    }
+
+    private String renameWithNumber(String name, int number) {
+        int lastDot = name.lastIndexOf('.');
+        if (lastDot == -1){
+            return name + '-' + number;
+        }
+        return new StringBuffer(name).insert(lastDot, "-" + number).toString();
     }
 
     @Override
@@ -117,7 +165,7 @@ public class OnlineModelImpl implements OnlineModel {
         }
     }
 
-    public void dispose(){
+    public void onDestroy(){
         compositeDisposable.dispose();
     }
 
@@ -142,6 +190,9 @@ public class OnlineModelImpl implements OnlineModel {
                                     kids.clear();
                                     for (int i = 0; i < fileItems.size(); i++) {
                                         FileItem fi = fileItems.get(i);
+                                        if (fi == null) {
+                                            continue;
+                                        }
                                         if (i == 0) {
                                             if (!fi.getType().equals("root")) {
                                                 //presenter.showToast("Server response format error", true);

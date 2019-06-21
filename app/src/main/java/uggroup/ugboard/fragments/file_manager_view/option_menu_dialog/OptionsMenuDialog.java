@@ -1,6 +1,6 @@
 package uggroup.ugboard.fragments.file_manager_view.option_menu_dialog;
 
-import android.support.v4.app.FragmentManager;
+import androidx.fragment.app.FragmentManager;
 
 import java.util.List;
 

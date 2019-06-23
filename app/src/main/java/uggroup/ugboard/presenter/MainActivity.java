@@ -2,7 +2,10 @@ package uggroup.ugboard.presenter;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,14 +24,17 @@ import uggroup.ugboard.models.online_model.FileItem;
 import uggroup.ugboard.models.online_model.OnlineModel;
 import uggroup.ugboard.models.online_model.OnlineModelImpl;
 import uggroup.ugboard.models.online_model.retrofit.IUGDBackend;
+import uggroup.ugboard.presenter.additional.IntentSender;
 
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
+import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
+import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 
 import net.gotev.uploadservice.MultipartUploadRequest;
@@ -47,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // For later responses to the online model
     ArrayList<FileItem> fileList;
+    IntentSender sender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +120,34 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setUpNavigationDrawer(){
+        this.sender = new IntentSender();
+        // Setup necessary buttons within the navigation drawer
+        SecondaryDrawerItem uploadArbitraryItems = new SecondaryDrawerItem()
+                .withName(R.string.drawer_item_upload_arbitrary_files)
+                .withOnDrawerItemClickListener(
+                        (view, position, drawerItem) -> {
+                            this.sender.onUploadArbitraryFilesClicked();
+                            return false;
+                        }
+                );
+        SecondaryDrawerItem uploadPhotosAndRecognize = new SecondaryDrawerItem()
+                .withName(R.string.drawer_item_upload_photos_and_recognize)
+                .withOnDrawerItemClickListener(
+                        (view, position, drawerItem) -> {
+                            this.sender.onUploadPhotosAndRecognizeClicked();
+                            return false;
+                        }
+                );
+        SecondaryDrawerItem uploadPhotosAndMerge = new SecondaryDrawerItem()
+                .withName(R.string.drawer_item_upload_photos_and_merge)
+                .withOnDrawerItemClickListener(
+                        (view, position, drawerItem) -> {
+                            this.sender.onUploadPhotosAndMergeClicked();
+                            return false;
+                        }
+                );
+
+        // Setup account header
         AccountHeader headerResult = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withHeaderBackground(R.drawable.header)
@@ -126,6 +161,8 @@ public class MainActivity extends AppCompatActivity implements
                     }
                 })
                 .build();
+
+        // Setup all the buttons
         new DrawerBuilder()
                 .withActivity(this)
                 .withAccountHeader(headerResult)
@@ -134,12 +171,21 @@ public class MainActivity extends AppCompatActivity implements
                         new PrimaryDrawerItem().withIdentifier(1).withName(R.string.drawer_item_cloud),
                         new PrimaryDrawerItem().withIdentifier(2).withName(R.string.drawer_item_local),
                         new DividerDrawerItem(),
-                        new SecondaryDrawerItem().withName(R.string.drawer_item_camera),
-                        new SecondaryDrawerItem().withName(R.string.drawer_item_gallery),
+                        uploadArbitraryItems,
+                        uploadPhotosAndRecognize,
+                        uploadPhotosAndMerge,
                         new DividerDrawerItem(),
                         new SecondaryDrawerItem().withName(R.string.action_settings)
                 )
                 .build();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+
+        }
     }
 
     @Override

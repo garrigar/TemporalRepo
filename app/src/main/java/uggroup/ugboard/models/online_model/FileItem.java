@@ -1,6 +1,6 @@
 package uggroup.ugboard.models.online_model;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -9,7 +9,7 @@ public class FileItem {
 
     @SerializedName("id")
     @Expose
-    private int id;
+    private String id;
     @SerializedName("name")
     @Expose
     private String name;
@@ -18,16 +18,19 @@ public class FileItem {
     private String type;
     @SerializedName("parentId")
     @Expose
-    private int parentId;
+    private String parentId;
+    @SerializedName("path")
+    @Expose
+    private String path;
     @SerializedName("content")
     @Expose
     private Object content;
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -47,12 +50,20 @@ public class FileItem {
         this.type = type;
     }
 
-    public int getParentId() {
+    public String getParentId() {
         return parentId;
     }
 
-    public void setParentId(int parentId) {
+    public void setParentId(String parentId) {
         this.parentId = parentId;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public Object getContent() {

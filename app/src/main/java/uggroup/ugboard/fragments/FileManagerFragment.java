@@ -1,8 +1,8 @@
 package uggroup.ugboard.fragments;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +14,6 @@ import java.util.List;
 import uggroup.ugboard.fragments.file_manager_view.FileManagerView;
 import uggroup.ugboard.fragments.file_manager_view.FileManagerViewImpl;
 import uggroup.ugboard.fragments.file_manager_view.option_menu_dialog.OptionsMenuDialog;
-import uggroup.ugboard.models.Server;
 
 
 public class FileManagerFragment extends Fragment implements FileManagerView.FileLongClickListener, FileManagerView.FileClickListener, OptionsMenuDialog.OnOptionClickListener,

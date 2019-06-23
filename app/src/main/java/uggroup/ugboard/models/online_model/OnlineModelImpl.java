@@ -5,16 +5,14 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
-import android.util.SparseArray;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Stack;
 
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import uggroup.ugboard.models.online_model.retrofit.IUGDBackend;
 import uggroup.ugboard.models.online_model.retrofit.RetrofitClient;
@@ -32,11 +30,12 @@ public class OnlineModelImpl implements OnlineModel {
     private DownloadManager downloadManager;
 
     private OnlinePresenter presenter;
-    private SparseArray<FileItem> itemsMap;
-    private SparseArray<HashSet<Integer>> kids;
 
-    private Stack<String> pathStack;
-    private int currentItemId;
+    private HashMap<String, FileItem> itemsMap;
+    private HashMap<String, HashSet<String>> kids;
+
+    //private Stack<String> pathStack;
+    private String currentItemId; // current item PATH actually, except of rootId = "1"
 
     private boolean success = false;
     private boolean error = false;
@@ -49,10 +48,10 @@ public class OnlineModelImpl implements OnlineModel {
         compositeDisposable = new CompositeDisposable();
         mService = RetrofitClient.getInstance().create(IUGDBackend.class);
 
-        itemsMap = new SparseArray<>();
-        kids = new SparseArray<>();
+        itemsMap = new HashMap<>();
+        kids = new HashMap<>();
 
-        pathStack = new Stack<>();
+        //pathStack = new Stack<>();
 
         updateItems();
     }
@@ -74,19 +73,19 @@ public class OnlineModelImpl implements OnlineModel {
 
     @Override
     public void goUp() {
-        if (currentItemId == 1 || currentItemId == 0) return;
+        if ("1".equals(currentItemId) || currentItemId == null) return;
         currentItemId = itemsMap.get(currentItemId).getParentId();
-        pathStack.pop();
+        //pathStack.pop();
         presenter.updateContents(getCurrentFiles(), getCurrentPath());
     }
 
     @Override
-    public void getAccess(FileItem fileItem) {
-        if (fileItem.getType().equals("root")) {
-            Log.d("UGD", "WTF? Trying to go into root?");
-        } else if (fileItem.getType().equals("folder")){
-            currentItemId = fileItem.getId();
-            pathStack.push(fileItem.getName());
+    public void getAccess(String itemName) {
+        String selectedItemId = ("1".equals(currentItemId) ? "disk:" : currentItemId) + "/" + itemName;
+        FileItem fileItem = itemsMap.get(selectedItemId);
+        if (fileItem.getType().equals("dir")){
+            currentItemId = selectedItemId;
+            //pathStack.push(fileItem.getName());
             presenter.updateContents(getCurrentFiles(), getCurrentPath());
         } else {
             //presenter.showToast("GOTTA be downloading this file in future", true);
@@ -97,19 +96,19 @@ public class OnlineModelImpl implements OnlineModel {
                 return;
             }
 
-            File workpath = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
+            File workDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
                     + "/" + LOCAL_FOLDER_NAME);
-            String filename = fileItem.getName();
-            File outputFile = new File(workpath, filename);
+            String filename = itemName;
+            File outputFile = new File(workDir, filename);
             int k = 0;
             while (outputFile.exists()){
                 k++;
-                filename = renameWithNumber(fileItem.getName(), k);
-                outputFile = new File(workpath, filename);
+                filename = renameWithNumber(itemName, k);
+                outputFile = new File(workDir, filename);
             }
             downloadManager.enqueue(
                     new DownloadManager.Request(
-                            Uri.parse(IUGDBackend.DOWNLOAD_BASE_URL + fileItem.getId())
+                            Uri.parse(IUGDBackend.DOWNLOAD_BASE_URL + selectedItemId)
                     )
                             .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI |
                                     DownloadManager.Request.NETWORK_MOBILE)
@@ -132,26 +131,28 @@ public class OnlineModelImpl implements OnlineModel {
     }
 
     @Override
-    public void delete(FileItem fileItem) {
+    public void delete(String filename) {
         // TODO
-        presenter.showToast("Not yet implemented", true);
+        presenter.showToast("Not yet implemented\n"+
+                "GOTTA be deleting file " + filename + " in future!", true);
     }
 
     @Override
-    public void rename(FileItem fileItem) {
+    public void rename(String filename, String newName) {
         // NOT YET IMPLEMENTED
-        presenter.showToast("Not yet implemented", true);
+        presenter.showToast("Not yet implemented\n"+
+                "GOTTA be renaming file " + filename + " to " + newName + " in future!", true);
     }
 
     @Override
     public void update() {
-        int id = currentItemId;
+        String id = currentItemId;
         updateItems();
         if (waitForSuccess()){
-            pathStack.clear();
+            //pathStack.clear();
             if (itemsMap.get(id) != null) {
                 currentItemId = id;
-                FileItem item = itemsMap.get(currentItemId);
+                /*FileItem item = itemsMap.get(currentItemId);
                 ArrayList<String> temp = new ArrayList<>();
                 while (item.getId() != 1){
                     temp.add(item.getName());
@@ -159,10 +160,15 @@ public class OnlineModelImpl implements OnlineModel {
                 }
                 for (int i = temp.size() - 1; i >= 0; i--) {
                     pathStack.push(temp.get(i));
-                }
+                }*/
             }
             presenter.updateContents(getCurrentFiles(), getCurrentPath());
         }
+    }
+
+    @Override
+    public void uploadFile(String path) {
+        // TODO
     }
 
     public void onDestroy(){
@@ -170,83 +176,80 @@ public class OnlineModelImpl implements OnlineModel {
     }
 
     private void updateItems() {
+        success = false;
+        error = false;
+        errMsg = "";
         compositeDisposable.add(
                 mService.getFileList()
                         .subscribeOn(Schedulers.io())
                         //.observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Consumer<List<FileItem>>() {
-                            @Override
-                            public void accept(List<FileItem> fileItems) throws Exception {
-                                success = false;
-                                error = false;
-                                errMsg = "";
-                                if (fileItems == null) {
-                                    //presenter.showToast("Server response error", true);
-                                    errMsg = "Server response error";
-                                    error = true;
-                                    return;
+                        .subscribe(fileItems -> {
+                            // onNext (on successful response)
+                            if (fileItems == null) {
+                                //presenter.showToast("Server response error", true);
+                                errMsg = "Server response error";
+                                error = true;
+                                return;
+                            }
+                            itemsMap.clear();
+                            kids.clear();
+                            for (int i = 0; i < fileItems.size(); i++) {
+                                FileItem fi = fileItems.get(i);
+                                if (fi == null) {
+                                    continue;
+                                }
+                                if (i == 0) {
+                                    if (!fi.getType().equals("root")) {
+                                        //presenter.showToast("Server response format error", true);
+                                        errMsg = "Server response format error";
+                                        error = true;
+                                        return;
+                                    } else {
+                                        kids.put(fi.getId(), new HashSet<>());
+                                    }
                                 } else {
-                                    itemsMap.clear();
-                                    kids.clear();
-                                    for (int i = 0; i < fileItems.size(); i++) {
-                                        FileItem fi = fileItems.get(i);
-                                        if (fi == null) {
-                                            continue;
-                                        }
-                                        if (i == 0) {
-                                            if (!fi.getType().equals("root")) {
-                                                //presenter.showToast("Server response format error", true);
-                                                errMsg = "Server response format error";
-                                                error = true;
-                                                return;
-                                            } else {
-                                                kids.append(fi.getId(), new HashSet<Integer>());
-                                            }
-                                        } else {
-                                            if (kids.get(fi.getParentId()) == null) {
-                                                kids.append(fi.getParentId(), new HashSet<Integer>());
-                                            }
-                                            kids.get(fi.getParentId()).add(fi.getId());
-                                            if (fi.getType().equals("folder") && kids.get(fi.getId()) == null) {
-                                                kids.append(fi.getId(), new HashSet<Integer>());
-                                            }
-                                        }
-                                        itemsMap.append(fi.getId(), fi);
+                                    kids.computeIfAbsent(fi.getParentId(), k -> new HashSet<>());
+                                    kids.get(fi.getParentId()).add(fi.getId());
+                                    if (fi.getType().equals("dir")) {
+                                        kids.computeIfAbsent(fi.getId(), k -> new HashSet<>());
                                     }
                                 }
-                                currentItemId = 1;
-                                success = true;
+                                itemsMap.put(fi.getId(), fi);
                             }
-                        }, new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Exception {
-                                // onError
-                                //presenter.showToast(throwable.getMessage(), true);
-                                errMsg = throwable.getMessage();
-                                error = true;
-                            }
+
+                            currentItemId = "1";
+                            success = true;
+                        }, throwable -> {
+                            // onError
+                            //presenter.showToast(throwable.getMessage(), true);
+                            errMsg = throwable.getMessage();
+                            error = true;
                         })
         );
     }
 
     private String getCurrentPath(){
-        StringBuilder sb = new StringBuilder("/");
+        /*StringBuilder sb = new StringBuilder("/");
         for (String s: pathStack) {
             sb.append(s).append('/');
         }
-        return sb.toString();
+        return sb.toString();*/
+        if ("1".equals(currentItemId)){
+            return "/";
+        }
+        return currentItemId.substring("data:".length()) + "/";
     }
 
     private List<FileItem> getCurrentFiles() {
         if (!itemsMap.get(currentItemId).getType().equals("root") &&
-                !itemsMap.get(currentItemId).getType().equals("folder") ||
+                !itemsMap.get(currentItemId).getType().equals("dir") ||
                 kids.get(currentItemId) == null){
             presenter.showToast("WTF?", true);
             return null;
         }
         ArrayList<FileItem> ans = new ArrayList<>();
         ans.ensureCapacity(kids.get(currentItemId).size());
-        for (Integer kidId : kids.get(currentItemId) ) {
+        for (String kidId : kids.get(currentItemId) ) {
             ans.add(itemsMap.get(kidId));
         }
         return ans;

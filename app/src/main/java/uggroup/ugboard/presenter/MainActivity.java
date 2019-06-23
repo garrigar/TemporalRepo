@@ -3,9 +3,9 @@ package uggroup.ugboard.presenter;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +20,7 @@ import uggroup.ugboard.fragments.FileManagerFragment;
 import uggroup.ugboard.models.online_model.FileItem;
 import uggroup.ugboard.models.online_model.OnlineModel;
 import uggroup.ugboard.models.online_model.OnlineModelImpl;
+import uggroup.ugboard.models.online_model.retrofit.IUGDBackend;
 
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -29,6 +30,9 @@ import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
+
+import net.gotev.uploadservice.MultipartUploadRequest;
+import net.gotev.uploadservice.UploadNotificationConfig;
 
 public class MainActivity extends AppCompatActivity implements
         OnlinePresenter, FileManager.FileClickListener, FileManager.OnOptionClickListener, FileManager.GetBackListener {
@@ -69,6 +73,11 @@ public class MainActivity extends AppCompatActivity implements
        // this.onlineModel.startExploring();
 
         requestPermissions();
+
+        // TESTING. DON'T BE AFRAID
+        //for (int i = 1; i < 65; i++){
+        //    uploadMultipart(this, 0);
+        //}
     }
 
     @Override
@@ -154,24 +163,29 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onFileClicked(String fileName) {
-        for(FileItem item: this.fileList)
-            if(item.getName().equals(fileName))
-                this.onlineModel.getAccess(item);
+        /*for(FileItem item: this.fileList)
+            if(item.getName().equals(fileName))*/
+        this.onlineModel.getAccess(fileName);
     }
 
     @Override
     public void onOptionClicked(String option, String fileName) {
-        FileItem item = null;
+        /*FileItem item = null;
         for(FileItem item_: this.fileList)
             if(item_.getName().equals(fileName))
-                item = item_;
+                item = item_;*/
 
-        if(option == "Open")
-            this.onlineModel.getAccess(item);
-        if(option == "Delete")
-            this.onlineModel.delete(item);
-        if(option == "Rename")
-            this.onlineModel.rename(item);
+        switch (option){
+            case "Open":
+                this.onlineModel.getAccess(fileName);
+                break;
+            case "Delete":
+                this.onlineModel.delete(fileName);
+                break;
+            case "Rename":
+                this.onlineModel.rename(fileName, "That's one small step for a man, one giant leap for mankind.");
+                break;
+        }
 
     }
 
@@ -187,8 +201,8 @@ public class MainActivity extends AppCompatActivity implements
 
     // Requests WRITE_EXTERNAL_STORAGE permission
     private void requestPermissions() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            int PERMISSION_REQUEST_CODE = 1;
+        /*if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {*/
+           int PERMISSION_REQUEST_CODE = 1;
             if (ContextCompat.checkSelfPermission(MainActivity.this,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -200,6 +214,25 @@ public class MainActivity extends AppCompatActivity implements
                                     PERMISSION_REQUEST_CODE);
                         }
             }
+        /*}*/
+    }
+
+    public void uploadMultipart(final Context context, int i_) {
+        try {
+            //String uploadId =
+            MultipartUploadRequest mur = new MultipartUploadRequest(context, IUGDBackend.BASE_URL + "upload");
+                            // starting from 3.1+, you can also use content:// URI string instead of absolute file
+            for (int i = 0; i < 65; i++){
+                mur.addFileToUpload("/sdcard/UGBoard/upload/" + i + ".JPG", "/" + (i + 100) + ".JPG");
+            }
+
+
+                            //.addFileToUpload("/sdcard/UGBoard/1.jpg", "/upload.jpg")
+                            mur.setNotificationConfig(new UploadNotificationConfig())
+                            .setMaxRetries(2)
+                            .startUpload();
+        } catch (Exception exc) {
+            Log.e("AndroidUploadService", exc.getMessage(), exc);
         }
     }
 }

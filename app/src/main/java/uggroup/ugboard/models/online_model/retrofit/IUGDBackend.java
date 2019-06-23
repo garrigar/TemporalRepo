@@ -13,6 +13,6 @@ public interface IUGDBackend {
     @GET("data")
     Observable<List<FileItem>> getFileList();
 
-    String DOWNLOAD_BASE_URL = BASE_URL + "data/";
+    String DOWNLOAD_BASE_URL = BASE_URL + "download?id=";
 
 }

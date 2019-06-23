@@ -1,5 +1,7 @@
 package uggroup.ugboard.models.online_model;
 
+import android.content.Intent;
+
 import uggroup.ugboard.presenter.OnlinePresenter;
 
 public interface OnlineModel {
@@ -45,9 +47,21 @@ public interface OnlineModel {
     void update();
 
     /**
-     * Upload file to current directory
-     * @param path - absolute path to file to upload
+     * Upload files to current directory
+     * @param data - Intent with data to upload
      */
-    void uploadFile(String path);
+    void uploadFiles(Intent data);
+
+    /**
+     * Upload photos to ...
+     * @param data - Intent with data to upload
+     */
+    void uploadPhotosAndRecognize(Intent data);
+
+    /**
+     * Upload photos to ...
+     * @param data - Intent with data to upload
+     */
+    void uploadPhotosAndMerge(Intent data);
 
 }

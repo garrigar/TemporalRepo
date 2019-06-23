@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements
                 .withAccountHeader(headerResult)
                 .withDisplayBelowStatusBar(true)
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withIdentifier(1).withName(R.string.drawer_item_cloud),
+                        new PrimaryDrawerItem().withIdentifier(10).withName(R.string.drawer_item_cloud),
                         new PrimaryDrawerItem().withIdentifier(2).withName(R.string.drawer_item_local),
                         new DividerDrawerItem(),
                         uploadArbitraryItems,
@@ -177,6 +177,14 @@ public class MainActivity extends AppCompatActivity implements
                         new DividerDrawerItem(),
                         new SecondaryDrawerItem().withName(R.string.action_settings)
                 )
+                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
+                    System.out.println("CLICK: ");
+                    System.out.println(view);
+                    System.out.println(drawerItem.getIdentifier());
+                    System.out.println(position);
+                    System.out.println(drawerItem);
+                    return true;
+                })
                 .build();
     }
 

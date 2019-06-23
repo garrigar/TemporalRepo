@@ -177,14 +177,6 @@ public class MainActivity extends AppCompatActivity implements
                         new DividerDrawerItem(),
                         new SecondaryDrawerItem().withName(R.string.action_settings)
                 )
-                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
-                    System.out.println("CLICK: ");
-                    System.out.println(view);
-                    System.out.println(drawerItem.getIdentifier());
-                    System.out.println(position);
-                    System.out.println(drawerItem);
-                    return true;
-                })
                 .build();
     }
 
@@ -192,7 +184,15 @@ public class MainActivity extends AppCompatActivity implements
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-
+            case IntentSender.UPLOAD_ARBITRARY_FILES:
+                this.onlineModel.uploadFiles(data);
+                break;
+            case IntentSender.UPLOAD_PHOTOS_AND_MERGE:
+                this.onlineModel.uploadPhotosAndMerge(data);
+                break;
+            case IntentSender.UPLOAD_PHOTOS_AND_RECOGNIZE:
+                this.onlineModel.uploadPhotosAndRecognize(data);
+                break;
         }
     }
 

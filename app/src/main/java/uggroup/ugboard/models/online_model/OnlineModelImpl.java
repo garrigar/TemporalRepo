@@ -2,6 +2,7 @@ package uggroup.ugboard.models.online_model;
 
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
@@ -68,6 +69,8 @@ public class OnlineModelImpl implements OnlineModel {
         if (waitForSuccess()) {
             // if success
             presenter.updateContents(getCurrentFiles(), getCurrentPath());
+        } else{
+            presenter.updateContents(new ArrayList<>(), "Error");
         }
     }
 
@@ -167,8 +170,18 @@ public class OnlineModelImpl implements OnlineModel {
     }
 
     @Override
-    public void uploadFile(String path) {
-        // TODO
+    public void uploadFiles(Intent data) {
+
+    }
+
+    @Override
+    public void uploadPhotosAndRecognize(Intent data) {
+
+    }
+
+    @Override
+    public void uploadPhotosAndMerge(Intent data) {
+
     }
 
     public void onDestroy(){

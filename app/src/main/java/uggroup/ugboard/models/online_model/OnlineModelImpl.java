@@ -19,11 +19,11 @@ import uggroup.ugboard.models.online_model.retrofit.IUGDBackend;
 import uggroup.ugboard.models.online_model.retrofit.RetrofitClient;
 import uggroup.ugboard.presenter.OnlinePresenter;
 
+import static uggroup.ugboard.models.offline_model.OfflineModel.LOCAL_FOLDER_NAME;
+
 public class OnlineModelImpl implements OnlineModel {
 
     private static final int MAX_TIMEOUT_MS = 15000;
-
-    private static final String LOCAL_FOLDER_NAME = "UGBoard";
 
     private CompositeDisposable compositeDisposable;
     private IUGDBackend mService;
@@ -69,7 +69,7 @@ public class OnlineModelImpl implements OnlineModel {
         if (waitForSuccess()) {
             // if success
             presenter.updateContents(getCurrentFiles(), getCurrentPath());
-        } else{
+        } else {
             presenter.updateContents(new ArrayList<>(), "Error");
         }
     }
@@ -170,18 +170,33 @@ public class OnlineModelImpl implements OnlineModel {
     }
 
     @Override
-    public void uploadFiles(Intent data) {
-
+    public void uploadExistingFiles(Intent data) {
+        presenter.showToast("uploadExistingFiles", true);
     }
 
     @Override
-    public void uploadPhotosAndRecognize(Intent data) {
-
+    public void uploadExistingPhotosAndRecognize(Intent data) {
+        presenter.showToast("uploadExistingPhotosAndRecognize", true);
     }
 
     @Override
-    public void uploadPhotosAndMerge(Intent data) {
+    public void uploadExistingPhotosAndMergePDF(Intent data) {
+        presenter.showToast("uploadExistingPhotosAndMergePDF", true);
+    }
 
+    @Override
+    public void uploadCameraPhoto(Intent data) {
+        presenter.showToast("uploadCameraPhoto", true);
+    }
+
+    @Override
+    public void uploadCameraPhotoAndRecognize(Intent data) {
+        presenter.showToast("uploadCameraPhotoAndRecognize", true);
+    }
+
+    @Override
+    public void uploadCameraPhotoAndMergePDF(Intent data) {
+        presenter.showToast("uploadCameraPhotoAndMergePDF", true);
     }
 
     public void onDestroy(){

@@ -47,21 +47,39 @@ public interface OnlineModel {
     void update();
 
     /**
-     * Upload files to current directory
+     * Upload existing files to current directory
      * @param data - Intent with data to upload
      */
-    void uploadFiles(Intent data);
+    void uploadExistingFiles(Intent data);
 
     /**
-     * Upload photos to ...
+     * Upload existing photos to ...
      * @param data - Intent with data to upload
      */
-    void uploadPhotosAndRecognize(Intent data);
+    void uploadExistingPhotosAndRecognize(Intent data);
 
     /**
-     * Upload photos to ...
+     * Upload existing photos to ...
      * @param data - Intent with data to upload
      */
-    void uploadPhotosAndMerge(Intent data);
+    void uploadExistingPhotosAndMergePDF(Intent data);
+
+    /**
+     * Upload photo from camera to current directory
+     * @param data - Intent with data to upload
+     */
+    void uploadCameraPhoto(Intent data);
+
+    /**
+     * Upload photo from camera to ...
+     * @param data - Intent with data to upload
+     */
+    void uploadCameraPhotoAndRecognize(Intent data);
+
+    /**
+     * Upload photo from camera to ...
+     * @param data - Intent with data to upload
+     */
+    void uploadCameraPhotoAndMergePDF(Intent data);
 
 }

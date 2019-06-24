@@ -4,19 +4,31 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.mikepenz.materialdrawer.AccountHeader;
+import com.mikepenz.materialdrawer.AccountHeaderBuilder;
+import com.mikepenz.materialdrawer.DrawerBuilder;
+import com.mikepenz.materialdrawer.model.DividerDrawerItem;
+import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
+import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
+import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
+import com.mikepenz.materialdrawer.model.interfaces.IProfile;
+
+import net.gotev.uploadservice.MultipartUploadRequest;
+import net.gotev.uploadservice.UploadNotificationConfig;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import uggroup.ugboard.R;
 import uggroup.ugboard.fragments.FileManager;
 import uggroup.ugboard.fragments.FileManagerFragment;
@@ -25,20 +37,6 @@ import uggroup.ugboard.models.online_model.OnlineModel;
 import uggroup.ugboard.models.online_model.OnlineModelImpl;
 import uggroup.ugboard.models.online_model.retrofit.IUGDBackend;
 import uggroup.ugboard.presenter.additional.IntentSender;
-
-import com.mikepenz.materialdrawer.AccountHeader;
-import com.mikepenz.materialdrawer.AccountHeaderBuilder;
-import com.mikepenz.materialdrawer.Drawer;
-import com.mikepenz.materialdrawer.DrawerBuilder;
-import com.mikepenz.materialdrawer.model.DividerDrawerItem;
-import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
-import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
-import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
-import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
-import com.mikepenz.materialdrawer.model.interfaces.IProfile;
-
-import net.gotev.uploadservice.MultipartUploadRequest;
-import net.gotev.uploadservice.UploadNotificationConfig;
 
 public class MainActivity extends AppCompatActivity implements
         OnlinePresenter, FileManager.FileClickListener, FileManager.OnOptionClickListener, FileManager.GetBackListener {
@@ -120,32 +118,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setUpNavigationDrawer(){
-        this.sender = new IntentSender();
-        // Setup necessary buttons within the navigation drawer
-        SecondaryDrawerItem uploadArbitraryItems = new SecondaryDrawerItem()
-                .withName(R.string.drawer_item_upload_arbitrary_files)
-                .withOnDrawerItemClickListener(
-                        (view, position, drawerItem) -> {
-                            this.sender.onUploadArbitraryFilesClicked();
-                            return false;
-                        }
-                );
-        SecondaryDrawerItem uploadPhotosAndRecognize = new SecondaryDrawerItem()
-                .withName(R.string.drawer_item_upload_photos_and_recognize)
-                .withOnDrawerItemClickListener(
-                        (view, position, drawerItem) -> {
-                            this.sender.onUploadPhotosAndRecognizeClicked();
-                            return false;
-                        }
-                );
-        SecondaryDrawerItem uploadPhotosAndMerge = new SecondaryDrawerItem()
-                .withName(R.string.drawer_item_upload_photos_and_merge)
-                .withOnDrawerItemClickListener(
-                        (view, position, drawerItem) -> {
-                            this.sender.onUploadPhotosAndMergeClicked();
-                            return false;
-                        }
-                );
+        this.sender = new IntentSender(this);
 
         // Setup account header
         AccountHeader headerResult = new AccountHeaderBuilder()
@@ -168,31 +141,103 @@ public class MainActivity extends AppCompatActivity implements
                 .withAccountHeader(headerResult)
                 .withDisplayBelowStatusBar(true)
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withIdentifier(10).withName(R.string.drawer_item_cloud),
-                        new PrimaryDrawerItem().withIdentifier(2).withName(R.string.drawer_item_local),
+                        new PrimaryDrawerItem()
+                                .withIdentifier(1)
+                                .withName(R.string.drawer_item_cloud),
+                        new PrimaryDrawerItem()
+                                .withIdentifier(2)
+                                .withName(R.string.drawer_item_local),
                         new DividerDrawerItem(),
-                        uploadArbitraryItems,
-                        uploadPhotosAndRecognize,
-                        uploadPhotosAndMerge,
+                        new ExpandableDrawerItem()
+                                .withName(getString(R.string.drawer_item_upload))
+                                .withSubItems(
+                                        new ExpandableDrawerItem()
+                                                .withName(getString(R.string.drawer_item_upload_existing))
+                                                .withSubItems(
+                                                        new SecondaryDrawerItem()
+                                                                .withName(getString(R.string.drawer_item_upload_existing_arbitrary))
+                                                                .withIdentifier(101),
+                                                        new SecondaryDrawerItem()
+                                                                .withName(getString(R.string.drawer_item_upload_existing_recognize))
+                                                                .withIdentifier(102),
+                                                        new SecondaryDrawerItem()
+                                                                .withName(getString(R.string.drawer_item_upload_existing_mergepdf))
+                                                                .withIdentifier(103)
+                                                ),
+                                        new ExpandableDrawerItem()
+                                                .withName(getString(R.string.drawer_item_upload_camera))
+                                                .withSubItems(
+                                                        new SecondaryDrawerItem()
+                                                                .withName(getString(R.string.drawer_item_upload_camera_arbitrary))
+                                                                .withIdentifier(201),
+                                                        new SecondaryDrawerItem()
+                                                                .withName(getString(R.string.drawer_item_upload_camera_recognize))
+                                                                .withIdentifier(202),
+                                                        new SecondaryDrawerItem()
+                                                                .withName(getString(R.string.drawer_item_upload_camera_mergepdf))
+                                                                .withIdentifier(203)
+                                                )
+                                ),
                         new DividerDrawerItem(),
                         new SecondaryDrawerItem().withName(R.string.action_settings)
                 )
+                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
+                    long id = drawerItem.getIdentifier();
+                    if (id == 101){
+                        this.sender.onUploadExistingArbitraryClicked();
+                        return true;
+                    }
+                    if (id == 102){
+                        this.sender.onUploadExistingRecognizeClicked();
+                        return true;
+                    }
+                    if (id == 103){
+                        this.sender.onUploadExistingMergePDFClicked();
+                        return true;
+                    }
+                    if (id == 201){
+                        this.sender.onUploadCameraArbitraryClicked();
+                        return true;
+                    }
+                    if (id == 202){
+                        this.sender.onUploadCameraRecognizeClicked();
+                        return true;
+                    }
+                    if (id == 203){
+                        this.sender.onUploadCameraMergePDFClicked();
+                        return true;
+                    }
+                    return true;
+                })
                 .build();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case IntentSender.UPLOAD_ARBITRARY_FILES:
-                this.onlineModel.uploadFiles(data);
-                break;
-            case IntentSender.UPLOAD_PHOTOS_AND_MERGE:
-                this.onlineModel.uploadPhotosAndMerge(data);
-                break;
-            case IntentSender.UPLOAD_PHOTOS_AND_RECOGNIZE:
-                this.onlineModel.uploadPhotosAndRecognize(data);
-                break;
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case IntentSender.UPLOAD_EXISTING_ARBITRARY:
+                    this.onlineModel.uploadExistingFiles(data);
+                    break;
+                case IntentSender.UPLOAD_EXISTING_RECOGNIZE:
+                    this.onlineModel.uploadExistingPhotosAndRecognize(data);
+                    break;
+                case IntentSender.UPLOAD_EXISTING_MERGEPDF:
+                    this.onlineModel.uploadExistingPhotosAndMergePDF(data);
+                    break;
+                case IntentSender.UPLOAD_CAMERA_ARBITRARY:
+                    this.onlineModel.uploadCameraPhoto(data);
+                    break;
+                case IntentSender.UPLOAD_CAMERA_RECOGNIZE:
+                    this.onlineModel.uploadCameraPhotoAndRecognize(data);
+                    break;
+                case IntentSender.UPLOAD_CAMERA_MERGEPDF:
+                    this.onlineModel.uploadCameraPhotoAndMergePDF(data);
+                    break;
+            }
+        } else {
+            Toast.makeText(this, "Upload cancelled", Toast.LENGTH_LONG).show();;
         }
     }
 

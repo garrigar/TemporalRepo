@@ -39,7 +39,7 @@ import uggroup.ugboard.models.online_model.retrofit.IUGDBackend;
 import uggroup.ugboard.presenter.additional.IntentSender;
 
 public class MainActivity extends AppCompatActivity implements
-        OnlinePresenter, FileManager.FileClickListener, FileManager.OnOptionClickListener, FileManager.GetBackListener {
+        OnlinePresenter, FileManager.FileClickListener, FileManager.OnOptionClickListener, FileManager.GetBackListener, FileManager.RefreshRequestListener {
 
 
     // Keep the fragment inside though it's the same
@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements
         this.fileManager.setFileClickListener(this);
         this.fileManager.setOnOptionClickListener(this);
         this.fileManager.setGetBackListener(this);
+        this.fileManager.setRefreshRequestListener(this);
         ArrayList<String> options =  new ArrayList<>();
         options.add("Open");
         options.add("Rename");
@@ -333,5 +334,10 @@ public class MainActivity extends AppCompatActivity implements
         } catch (Exception exc) {
             Log.e("AndroidUploadService", exc.getMessage(), exc);
         }
+    }
+
+    @Override
+    public void onRefreshRequested() {
+        this.onlineModel.update();
     }
 }

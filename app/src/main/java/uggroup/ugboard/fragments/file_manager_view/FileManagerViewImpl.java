@@ -58,6 +58,7 @@ public class FileManagerViewImpl implements FileManagerView {
         );
         this.swipeRefresh = this.rootView.findViewById(R.id.swiperefresh);
 
+
         Log.i(this.logTag, "FileManagerViewImpl is instantiated");
     }
 
@@ -144,6 +145,7 @@ public class FileManagerViewImpl implements FileManagerView {
         this.swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                FileManagerViewImpl.this.swipeRefresh.setRefreshing(false);
                 listener.onRefreshRequested();
             }
         });

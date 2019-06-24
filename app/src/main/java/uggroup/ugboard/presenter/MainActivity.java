@@ -19,9 +19,6 @@ import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 
-import net.gotev.uploadservice.MultipartUploadRequest;
-import net.gotev.uploadservice.UploadNotificationConfig;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,8 +32,7 @@ import uggroup.ugboard.fragments.FileManagerFragment;
 import uggroup.ugboard.models.online_model.FileItem;
 import uggroup.ugboard.models.online_model.OnlineModel;
 import uggroup.ugboard.models.online_model.OnlineModelImpl;
-import uggroup.ugboard.models.online_model.retrofit.IUGDBackend;
-import uggroup.ugboard.presenter.additional.IntentSender;
+import uggroup.ugboard.presenter.additional.IntentHandler;
 
 public class MainActivity extends AppCompatActivity implements
         OnlinePresenter, FileManager.FileClickListener, FileManager.OnOptionClickListener, FileManager.GetBackListener {
@@ -51,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // For later responses to the online model
     ArrayList<FileItem> fileList;
-    IntentSender sender;
+    IntentHandler intentHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,14 +71,12 @@ public class MainActivity extends AppCompatActivity implements
 
         this.onlineModel = OnlineModelImpl.getInstance();
         this.onlineModel.setOnlinePresenter(this);
-       // this.onlineModel.startExploring();
+
+        this.intentHandler = new IntentHandler(this, this.onlineModel);
+        //this.onlineModel.startExploring();
 
         requestPermissions();
 
-        // TESTING. DON'T BE AFRAID
-        //for (int i = 1; i < 65; i++){
-        //    uploadMultipart(this, 0);
-        //}
     }
 
     @Override
@@ -118,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setUpNavigationDrawer(){
-        this.sender = new IntentSender(this);
 
         // Setup account header
         AccountHeader headerResult = new AccountHeaderBuilder()
@@ -184,27 +177,27 @@ public class MainActivity extends AppCompatActivity implements
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
                     long id = drawerItem.getIdentifier();
                     if (id == 101){
-                        this.sender.onUploadExistingArbitraryClicked();
+                        this.intentHandler.onUploadExistingArbitraryClicked();
                         return true;
                     }
                     if (id == 102){
-                        this.sender.onUploadExistingRecognizeClicked();
+                        this.intentHandler.onUploadExistingRecognizeClicked();
                         return true;
                     }
                     if (id == 103){
-                        this.sender.onUploadExistingMergePDFClicked();
+                        this.intentHandler.onUploadExistingMergePDFClicked();
                         return true;
                     }
                     if (id == 201){
-                        this.sender.onUploadCameraArbitraryClicked();
+                        this.intentHandler.onUploadCameraArbitraryClicked();
                         return true;
                     }
                     if (id == 202){
-                        this.sender.onUploadCameraRecognizeClicked();
+                        this.intentHandler.onUploadCameraRecognizeClicked();
                         return true;
                     }
                     if (id == 203){
-                        this.sender.onUploadCameraMergePDFClicked();
+                        this.intentHandler.onUploadCameraMergePDFClicked();
                         return true;
                     }
                     return true;
@@ -215,30 +208,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
-            switch (requestCode) {
-                case IntentSender.UPLOAD_EXISTING_ARBITRARY:
-                    this.onlineModel.uploadExistingFiles(data);
-                    break;
-                case IntentSender.UPLOAD_EXISTING_RECOGNIZE:
-                    this.onlineModel.uploadExistingPhotosAndRecognize(data);
-                    break;
-                case IntentSender.UPLOAD_EXISTING_MERGEPDF:
-                    this.onlineModel.uploadExistingPhotosAndMergePDF(data);
-                    break;
-                case IntentSender.UPLOAD_CAMERA_ARBITRARY:
-                    this.onlineModel.uploadCameraPhoto(data);
-                    break;
-                case IntentSender.UPLOAD_CAMERA_RECOGNIZE:
-                    this.onlineModel.uploadCameraPhotoAndRecognize(data);
-                    break;
-                case IntentSender.UPLOAD_CAMERA_MERGEPDF:
-                    this.onlineModel.uploadCameraPhotoAndMergePDF(data);
-                    break;
-            }
-        } else {
-            Toast.makeText(this, "Upload cancelled", Toast.LENGTH_LONG).show();;
-        }
+        this.intentHandler.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -316,22 +286,4 @@ public class MainActivity extends AppCompatActivity implements
         /*}*/
     }
 
-    public void uploadMultipart(final Context context, int i_) {
-        try {
-            //String uploadId =
-            MultipartUploadRequest mur = new MultipartUploadRequest(context, IUGDBackend.BASE_URL + "upload");
-                            // starting from 3.1+, you can also use content:// URI string instead of absolute file
-            for (int i = 0; i < 65; i++){
-                mur.addFileToUpload("/sdcard/UGBoard/upload/" + i + ".JPG", "/" + (i + 100) + ".JPG");
-            }
-
-
-                            //.addFileToUpload("/sdcard/UGBoard/1.jpg", "/upload.jpg")
-                            mur.setNotificationConfig(new UploadNotificationConfig())
-                            .setMaxRetries(2)
-                            .startUpload();
-        } catch (Exception exc) {
-            Log.e("AndroidUploadService", exc.getMessage(), exc);
-        }
-    }
 }

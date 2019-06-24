@@ -2,12 +2,18 @@ package uggroup.ugboard.models.online_model;
 
 import android.app.DownloadManager;
 import android.content.Context;
-import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.OpenableColumns;
 import android.util.Log;
 
+import net.gotev.uploadservice.MultipartUploadRequest;
+import net.gotev.uploadservice.UploadNotificationConfig;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -170,33 +176,34 @@ public class OnlineModelImpl implements OnlineModel {
     }
 
     @Override
-    public void uploadExistingFiles(Intent data) {
-        presenter.showToast("uploadExistingFiles", true);
+    public void uploadFiles(List<Uri> uriList) {
+        try {
+            MultipartUploadRequest multipartUploadRequest = new MultipartUploadRequest(presenter.getContext(),
+                    IUGDBackend.BASE_URL + "upload");
+            for (Uri uri : uriList) {
+                Log.i("MULTIPART_UPLOAD", uri.toString() + " " + getCurrentPath() + getFilenameFromUri(uri));
+                multipartUploadRequest.addFileToUpload(uri.toString(), getCurrentPath() + getFilenameFromUri(uri));
+            }
+            multipartUploadRequest.setNotificationConfig(new UploadNotificationConfig())
+                    .setMaxRetries(2)
+                    .startUpload();
+        } catch (MalformedURLException e) {
+            presenter.showToast("MalformedURL exception", true);
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            presenter.showToast("FileNotFound exception", true);
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void uploadExistingPhotosAndRecognize(Intent data) {
-        presenter.showToast("uploadExistingPhotosAndRecognize", true);
+    public void uploadPhotosAndRecognize(List<Uri> uriList) {
+        presenter.showToast("uploadPhotosAndRecognize", true);
     }
 
     @Override
-    public void uploadExistingPhotosAndMergePDF(Intent data) {
-        presenter.showToast("uploadExistingPhotosAndMergePDF", true);
-    }
-
-    @Override
-    public void uploadCameraPhoto(Intent data) {
-        presenter.showToast("uploadCameraPhoto", true);
-    }
-
-    @Override
-    public void uploadCameraPhotoAndRecognize(Intent data) {
-        presenter.showToast("uploadCameraPhotoAndRecognize", true);
-    }
-
-    @Override
-    public void uploadCameraPhotoAndMergePDF(Intent data) {
-        presenter.showToast("uploadCameraPhotoAndMergePDF", true);
+    public void uploadPhotosAndMergePDF(List<Uri> uriList) {
+        presenter.showToast("uploadPhotosAndMergePDF", true);
     }
 
     public void onDestroy(){
@@ -304,5 +311,16 @@ public class OnlineModelImpl implements OnlineModel {
         }
         // if success
         return true;
+    }
+
+    private String getFilenameFromUri(Uri uri){
+        Cursor returnCursor = presenter.getContext().getContentResolver()
+                .query(uri, null, null, null, null);
+        assert returnCursor != null;
+        int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+        returnCursor.moveToFirst();
+        String name = returnCursor.getString(nameIndex);
+        returnCursor.close();
+        return name;
     }
 }

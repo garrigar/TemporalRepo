@@ -1,41 +1,53 @@
 package uggroup.ugboard.presenter.additional;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 import uggroup.ugboard.BuildConfig;
+import uggroup.ugboard.models.online_model.OnlineModel;
 
 import static uggroup.ugboard.models.offline_model.OfflineModel.LOCAL_FOLDER_NAME;
 
-public class IntentSender {
+public class IntentHandler {
 
-    private static final String LOG_TAG = "IntentSender";
+    private static final String LOG_TAG = "IntentHandler";
 
-    public static final int UPLOAD_EXISTING_ARBITRARY = 0;
-    public static final int UPLOAD_EXISTING_RECOGNIZE = 1;
-    public static final int UPLOAD_EXISTING_MERGEPDF = 2;
-    public static final int UPLOAD_CAMERA_ARBITRARY = 3;
-    public static final int UPLOAD_CAMERA_RECOGNIZE = 4;
-    public static final int UPLOAD_CAMERA_MERGEPDF = 5;
+    private static final int UPLOAD_EXISTING_ARBITRARY = 0;
+    private static final int UPLOAD_EXISTING_RECOGNIZE = 1;
+    private static final int UPLOAD_EXISTING_MERGEPDF = 2;
+    private static final int UPLOAD_CAMERA_ARBITRARY = 3;
+    private static final int UPLOAD_CAMERA_RECOGNIZE = 4;
+    private static final int UPLOAD_CAMERA_MERGEPDF = 5;
 
     private Activity activity;
+    private OnlineModel onlineModel;
+
     private Intent selectMultipleFilesIntent;
     private Intent selectMultiplePhotosIntent;
 
-    public IntentSender(Activity activity) {
+    private Uri photoURI;
+
+    public IntentHandler(Activity activity, OnlineModel onlineModel) {
         this.activity = activity;
+        this.onlineModel = onlineModel;
 
         selectMultipleFilesIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
@@ -110,11 +122,71 @@ public class IntentSender {
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(activity,
+                photoURI = FileProvider.getUriForFile(activity,
                         BuildConfig.APPLICATION_ID + ".fileProvider", photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 activity.startActivityForResult(takePictureIntent, requestCode);
             }
         }
     }
+
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        switch (requestCode){
+            case UPLOAD_CAMERA_ARBITRARY: case UPLOAD_CAMERA_RECOGNIZE: case UPLOAD_CAMERA_MERGEPDF:
+                if (resultCode == Activity.RESULT_OK) {
+                    ArrayList<Uri> list = new ArrayList<>();
+                    list.add(photoURI);
+                    switch (requestCode){
+                        case UPLOAD_CAMERA_ARBITRARY:
+                            onlineModel.uploadFiles(list);
+                            break;
+                        case UPLOAD_CAMERA_RECOGNIZE:
+                            onlineModel.uploadPhotosAndRecognize(list);
+                            break;
+                        case UPLOAD_CAMERA_MERGEPDF:
+                            onlineModel.uploadPhotosAndMergePDF(list);
+                            break;
+                    }
+                } else {
+                    Toast.makeText(activity, "Upload cancelled", Toast.LENGTH_SHORT).show();
+                    // need to delete temp image file
+                    ContentResolver contentResolver = activity.getContentResolver();
+                    contentResolver.takePersistableUriPermission(photoURI, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    try {
+                        DocumentsContract.deleteDocument(contentResolver, photoURI);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            case UPLOAD_EXISTING_ARBITRARY: case UPLOAD_EXISTING_RECOGNIZE: case UPLOAD_EXISTING_MERGEPDF:
+                if (resultCode == Activity.RESULT_OK) {
+                    ArrayList<Uri> list = new ArrayList<>();
+                    ClipData clipData = data.getClipData();
+                    if (clipData != null){
+                        int count = clipData.getItemCount();
+                        for (int i = 0; i < count; i++){
+                            list.add(clipData.getItemAt(i).getUri());
+                        }
+                    } else if (data.getData() != null){
+                        list.add(data.getData());
+                    }
+                    switch (requestCode){
+                        case UPLOAD_EXISTING_ARBITRARY:
+                            onlineModel.uploadFiles(list);
+                            break;
+                        case UPLOAD_EXISTING_RECOGNIZE:
+                            onlineModel.uploadPhotosAndRecognize(list);
+                            break;
+                        case UPLOAD_EXISTING_MERGEPDF:
+                            onlineModel.uploadPhotosAndMergePDF(list);
+                            break;
+                    }
+                } else {
+                    Toast.makeText(activity, "Upload cancelled", Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
+    }
+
 }

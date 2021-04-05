@@ -4,4 +4,6 @@ import uggroup.ugboard.MVPView;
 
 public interface FileView extends MVPView {
     void setName(String name);
+
+    void setType(String type);
 }

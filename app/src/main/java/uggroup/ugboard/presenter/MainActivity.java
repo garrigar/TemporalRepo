@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.DrawerBuilder;
@@ -18,9 +19,6 @@ import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
-
-import net.gotev.uploadservice.MultipartUploadRequest;
-import net.gotev.uploadservice.UploadNotificationConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,14 +30,16 @@ import androidx.core.content.ContextCompat;
 import uggroup.ugboard.R;
 import uggroup.ugboard.fragments.FileManager;
 import uggroup.ugboard.fragments.FileManagerFragment;
+import uggroup.ugboard.models.offline_model.OfflineModel;
+import uggroup.ugboard.models.offline_model.OfflineModelImpl;
 import uggroup.ugboard.models.online_model.FileItem;
 import uggroup.ugboard.models.online_model.OnlineModel;
 import uggroup.ugboard.models.online_model.OnlineModelImpl;
-import uggroup.ugboard.models.online_model.retrofit.IUGDBackend;
 import uggroup.ugboard.presenter.additional.IntentHandler;
 
 public class MainActivity extends AppCompatActivity implements
-        OnlinePresenter, FileManager.FileClickListener, FileManager.OnOptionClickListener, FileManager.GetBackListener, FileManager.RefreshRequestListener {
+        OnlinePresenter, OfflinePresenter, FileManager.FileClickListener, FileManager.OnOptionClickListener,
+        FileManager.GetBackListener, FileManager.RefreshRequestListener {
 
 
     // Keep the fragment inside though it's the same
@@ -49,14 +49,24 @@ public class MainActivity extends AppCompatActivity implements
     FileManager fileManager;
     OnlineModel onlineModel;
 
+    OfflineModel offlineModel;
+
     // For later responses to the online model
-    ArrayList<FileItem> fileList;
+    //ArrayList<FileItem> fileList;
     IntentHandler intentHandler;
+
+    private boolean IS_ONLINE_NOT_OFFLINE = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+
+        this.onlineModel = OnlineModelImpl.getInstance();
+        this.onlineModel.setOnlinePresenter(this);
+
+        this.offlineModel = OfflineModelImpl.getInstance();
+        this.offlineModel.setOfflinePresenter(this);
 
         // Add file manager via fragment transaction
         this.fileManagerFragment = new FileManagerFragment();
@@ -74,11 +84,8 @@ public class MainActivity extends AppCompatActivity implements
         attachFileManager();
         setUpNavigationDrawer();
 
-        this.onlineModel = OnlineModelImpl.getInstance();
-        this.onlineModel.setOnlinePresenter(this);
-
         this.intentHandler = new IntentHandler(this, this.onlineModel);
-        //this.onlineModel.startExploring();
+        //this.onlineModel.init();
 
         requestPermissions();
 
@@ -86,11 +93,17 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onResumeFragments() {
-        // We need to call startExploring method here because
+        // We need to call init method here because
         // the onlineModel calls updating the fileList too early,
         // e.c. when the view is not created yet.
         super.onResumeFragments();
-        this.onlineModel.startExploring();
+        this.onlineModel.init();
+
+        if (IS_ONLINE_NOT_OFFLINE) {
+            this.onlineModel.startExploring();
+        } else {
+            this.offlineModel.startExploring();
+        }
     }
 
     private void attachFileManager() {
@@ -123,7 +136,18 @@ public class MainActivity extends AppCompatActivity implements
                 .withActivity(this)
                 .withHeaderBackground(R.drawable.header)
                 .addProfiles(
-                        new ProfileDrawerItem().withName("Super Haker").withEmail("ebaniy_vrot@gmail.com").withIcon(getResources().getDrawable(R.drawable.profile))
+                        new ProfileDrawerItem()
+                                .withName("Super Hacker")
+                                .withEmail("CENSORED@gmail.com")
+                                .withIcon(R.drawable.profile),
+                        new ProfileDrawerItem()
+                                .withName("Der kluge Kopf")
+                                .withEmail("myemail@gmail.com")
+                                .withIcon(R.drawable.profile_rocket),
+                        new ProfileDrawerItem()
+                                .withName("King of Rock")
+                                .withEmail("showmustgoon@gmail.com")
+                                .withIcon(R.drawable.profile_freddie)
                 )
                 .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
                     @Override
@@ -160,7 +184,10 @@ public class MainActivity extends AppCompatActivity implements
                                                                 .withIdentifier(102),
                                                         new SecondaryDrawerItem()
                                                                 .withName(getString(R.string.drawer_item_upload_existing_mergepdf))
-                                                                .withIdentifier(103)
+                                                                .withIdentifier(103),
+                                                        new SecondaryDrawerItem()
+                                                                .withName(getString(R.string.drawer_item_upload_existing_recognize_mergepdf))
+                                                                .withIdentifier(104)
                                                 ),
                                         new ExpandableDrawerItem()
                                                 .withName(getString(R.string.drawer_item_upload_camera))
@@ -173,7 +200,10 @@ public class MainActivity extends AppCompatActivity implements
                                                                 .withIdentifier(202),
                                                         new SecondaryDrawerItem()
                                                                 .withName(getString(R.string.drawer_item_upload_camera_mergepdf))
-                                                                .withIdentifier(203)
+                                                                .withIdentifier(203),
+                                                        new SecondaryDrawerItem()
+                                                                .withName(getString(R.string.drawer_item_upload_camera_recognize_mergepdf))
+                                                                .withIdentifier(204)
                                                 )
                                 ),
                         new DividerDrawerItem(),
@@ -181,31 +211,49 @@ public class MainActivity extends AppCompatActivity implements
                 )
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
                     long id = drawerItem.getIdentifier();
+                    if (id == 1){
+                        if (IS_ONLINE_NOT_OFFLINE) return true;
+                        IS_ONLINE_NOT_OFFLINE = true;
+                        this.onlineModel.startExploring();
+                    }
+                    if (id == 2){
+                        if (!IS_ONLINE_NOT_OFFLINE) return true;
+                        IS_ONLINE_NOT_OFFLINE = false;
+                        this.offlineModel.startExploring();
+                    }
                     if (id == 101){
                         this.intentHandler.onUploadExistingArbitraryClicked();
-                        return true;
+                        return false;
                     }
                     if (id == 102){
                         this.intentHandler.onUploadExistingRecognizeClicked();
-                        return true;
+                        return false;
                     }
                     if (id == 103){
                         this.intentHandler.onUploadExistingMergePDFClicked();
-                        return true;
+                        return false;
+                    }
+                    if (id == 104){
+                        this.intentHandler.onUploadExistingRecognizeMergePDFClicked();
+                        return false;
                     }
                     if (id == 201){
                         this.intentHandler.onUploadCameraArbitraryClicked();
-                        return true;
+                        return false;
                     }
                     if (id == 202){
                         this.intentHandler.onUploadCameraRecognizeClicked();
-                        return true;
+                        return false;
                     }
                     if (id == 203){
                         this.intentHandler.onUploadCameraMergePDFClicked();
-                        return true;
+                        return false;
                     }
-                    return true;
+                    if (id == 204){
+                        this.intentHandler.onUploadCameraRecognizeMergePDFClicked();
+                        return false;
+                    }
+                    return false;
                 })
                 .build();
     }
@@ -219,12 +267,26 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void updateContents(List<FileItem> fileList, String folderName) {
         Log.i("Online Presenter", "Update contents call.");
-        this.fileList = new ArrayList<>(fileList);
+        //this.fileList = new ArrayList<>(fileList);
+
+        // fileItems are already sorted by name
+        // we want folders to lead this list
         ArrayList<String> files = new ArrayList<>();
-        for(FileItem a: fileList) {
-            files.add(a.getName());
-        }
+        files.ensureCapacity(fileList.size());
+        ArrayList<String> types = new ArrayList<>();
+        types.ensureCapacity(fileList.size());
+        fileList.stream().filter(fileItem -> "dir".equals(fileItem.getType()))
+                .forEach(fileItem -> {
+                    files.add(fileItem.getName());
+                    types.add("dir");
+                });
+        fileList.stream().filter(fileItem -> !"dir".equals(fileItem.getType()))
+                .forEach(fileItem -> {
+                    files.add(fileItem.getName());
+                    types.add(fileItem.getType());
+                });
         this.fileManager.setFileList(files);
+        this.fileManager.setFileTypesList(types);
         this.fileManager.setFolderName(folderName);
 
     }
@@ -236,10 +298,19 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void showSnackbar(String text, int duration) {
+        Snackbar.make(findViewById(R.id.fragment_container), text, duration).show();
+    }
+
+    @Override
     public void onFileClicked(String fileName) {
         /*for(FileItem item: this.fileList)
             if(item.getName().equals(fileName))*/
-        this.onlineModel.getAccess(fileName);
+        if (IS_ONLINE_NOT_OFFLINE) {
+            this.onlineModel.getAccess(fileName);
+        } else {
+            this.offlineModel.getAccess(fileName);
+        }
     }
 
     @Override
@@ -249,23 +320,39 @@ public class MainActivity extends AppCompatActivity implements
             if(item_.getName().equals(fileName))
                 item = item_;*/
 
-        switch (option){
-            case "Open":
-                this.onlineModel.getAccess(fileName);
-                break;
-            case "Delete":
-                this.onlineModel.delete(fileName);
-                break;
-            case "Rename":
-                this.onlineModel.rename(fileName, "That's one small step for a man, one giant leap for mankind.");
-                break;
+        if (IS_ONLINE_NOT_OFFLINE) {
+            switch (option){
+                case "Open":
+                    this.onlineModel.getAccess(fileName);
+                    break;
+                case "Delete":
+                    this.onlineModel.delete(fileName);
+                    break;
+                case "Rename":
+                    this.onlineModel.rename(fileName, "That's one small step for a man, one giant leap for mankind.");
+                    break;
+            }
+        } else {
+            switch (option){
+                case "Open":
+                    this.offlineModel.getAccess(fileName);
+                    break;
+                case "Delete":
+                    this.offlineModel.delete(fileName);
+                    break;
+                case "Rename":
+                    this.offlineModel.rename(fileName, "That's one small step for a man, one giant leap for mankind.");
+                    break;
+            }
         }
 
     }
 
     @Override
     public void onGetBack() {
-        this.onlineModel.goUp();
+        if (IS_ONLINE_NOT_OFFLINE) {
+            this.onlineModel.goUp();
+        }
     }
 
     @Override
@@ -291,29 +378,34 @@ public class MainActivity extends AppCompatActivity implements
         /*}*/
     }
 
-
-    public void uploadMultipart(final Context context, int i_) {
-        try {
-            //String uploadId =
-            MultipartUploadRequest mur = new MultipartUploadRequest(context, IUGDBackend.BASE_URL + "upload");
-                            // starting from 3.1+, you can also use content:// URI string instead of absolute file
-            for (int i = 0; i < 65; i++){
-                mur.addFileToUpload("/sdcard/UGBoard/upload/" + i + ".JPG", "/" + (i + 100) + ".JPG");
-            }
-
-
-                            //.addFileToUpload("/sdcard/UGBoard/1.jpg", "/upload.jpg")
-                            mur.setNotificationConfig(new UploadNotificationConfig())
-                            .setMaxRetries(2)
-                            .startUpload();
-        } catch (Exception exc) {
-            Log.e("AndroidUploadService", exc.getMessage(), exc);
+    @Override
+    public void onRefreshRequested() {
+        if (IS_ONLINE_NOT_OFFLINE) {
+            this.onlineModel.update();
+        } else {
+            this.offlineModel.update();
         }
     }
 
     @Override
-    public void onRefreshRequested() {
-        this.onlineModel.update();
+    public void setUpdatingState(boolean state) {
+        this.fileManager.setUpdatingState(state);
     }
 
+    @Override
+    public void onBackPressed() {
+        if (IS_ONLINE_NOT_OFFLINE) {
+            if (!this.onlineModel.goUp())
+                super.onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public void updateContentsLocal(List<String> fileNames, List<String> fileTypes) {
+        this.fileManager.setFileList(fileNames);
+        this.fileManager.setFileTypesList(fileTypes);
+        this.fileManager.setFolderName(OfflineModel.LOCAL_FOLDER_NAME);
+    }
 }

@@ -99,6 +99,13 @@ public class FileManagerFragment extends Fragment implements FileManagerView.Fil
     }
 
     @Override
+    public void setFileTypesList(List<String> fileTypes) {
+        if (this.mainView == null)
+            return;
+        this.mainView.setFileTypesList(fileTypes);
+    }
+
+    @Override
     public void setOptionsList(List<String> fileOptions) {
         // mainView might not be initialized yet, so we
         // save the file options in order to set them later
@@ -149,5 +156,10 @@ public class FileManagerFragment extends Fragment implements FileManagerView.Fil
     public void onGetBack() {
         if(this.getBackListener != null)
             this.getBackListener.onGetBack();
+    }
+
+    @Override
+    public void setUpdatingState(boolean state) {
+        this.mainView.setUpdatingState(state);
     }
 }

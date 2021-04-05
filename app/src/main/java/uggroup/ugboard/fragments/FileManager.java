@@ -14,6 +14,7 @@ import uggroup.ugboard.fragments.file_manager_view.FileManagerView;
 // uses it as main layout.
 public interface FileManager {
     void setFileList(List<String> fileNames);
+    void setFileTypesList(List<String> fileTypes);
     void setOptionsList(List<String> fileOptions);
     void setFolderName(String name);
 
@@ -45,4 +46,6 @@ public interface FileManager {
     interface GetBackListener {
         void onGetBack();
     }
+
+    void setUpdatingState(boolean state);
 }

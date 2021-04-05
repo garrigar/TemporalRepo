@@ -6,12 +6,16 @@ import java.util.List;
 
 import uggroup.ugboard.models.online_model.FileItem;
 
-public interface OnlinePresenter {
+public interface OnlinePresenter extends BaseFileManagerPresenter {
 
     void updateContents(List<FileItem> newList, String newFolderName);
 
-    void showToast(String text, boolean isLong);
+    //void showToast(String text, boolean isLong);
 
-    Context getContext();
+    //void showSnackbar(String text, int duration);
+
+    //void setUpdatingState(boolean state);
+
+    //Context getContext();
 
 }

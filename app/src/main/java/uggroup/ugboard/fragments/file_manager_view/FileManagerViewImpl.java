@@ -57,7 +57,7 @@ public class FileManagerViewImpl implements FileManagerView {
                 this.logTag+"."+this.optionsMenuDialog.getDefaultLogTag()
         );
         this.swipeRefresh = this.rootView.findViewById(R.id.swiperefresh);
-
+        this.swipeRefresh.setColorSchemeResources(R.color.colorPrimary);
 
         Log.i(this.logTag, "FileManagerViewImpl is instantiated");
     }
@@ -68,6 +68,14 @@ public class FileManagerViewImpl implements FileManagerView {
         this.fileListAdapter.notifyDataSetChanged();
 
         Log.i(this.logTag, "setFileList call");
+    }
+
+    @Override
+    public void setFileTypesList(List<String> fileTypes) {
+        this.fileListAdapter.setFileTypes(fileTypes);
+        this.fileListAdapter.notifyDataSetChanged();
+
+        Log.i(this.logTag, "setFileTypesList call");
     }
 
     @Override
@@ -133,7 +141,7 @@ public class FileManagerViewImpl implements FileManagerView {
 
                         Log.i(FileManagerViewImpl.this.logTag + ".FileLongClickListener",
                                 "onItemLongClick call");
-                        return false;
+                        return true;
                     }
                 }
         );
@@ -145,7 +153,7 @@ public class FileManagerViewImpl implements FileManagerView {
         this.swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                FileManagerViewImpl.this.swipeRefresh.setRefreshing(false);
+                //FileManagerViewImpl.this.swipeRefresh.setRefreshing(false);
                 listener.onRefreshRequested();
             }
         });
@@ -176,7 +184,7 @@ public class FileManagerViewImpl implements FileManagerView {
         }
         this.toast.setDuration(length);
         this.toast.setText(msg);
-        this.toast.show();
+        //this.toast.show();
 
         Log.i(this.logTag, "showToast call");
     }
@@ -191,5 +199,10 @@ public class FileManagerViewImpl implements FileManagerView {
     public void setLogTag(String tag) {
         this.logTag = tag;
         Log.i(this.logTag, "setLogTag call");
+    }
+
+    @Override
+    public void setUpdatingState(boolean state) {
+        swipeRefresh.setRefreshing(state);
     }
 }

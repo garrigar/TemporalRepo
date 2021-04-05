@@ -2,6 +2,7 @@ package uggroup.ugboard.models.online_model;
 
 import android.net.Uri;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import uggroup.ugboard.presenter.OnlinePresenter;
@@ -15,14 +16,20 @@ public interface OnlineModel {
     void setOnlinePresenter(OnlinePresenter onlinePresenter);
 
     /**
+     * Initialization
+     */
+    void init();
+
+    /**
      * Beginning exploring
      */
     void startExploring();
 
     /**
      * Go up in file hierarchy
+     * @return true if could go up in hierarchy, false otherwise
      */
-    void goUp();
+    boolean goUp();
 
     /**
      * Go into folder or download file with name <>filename</> in current folder
@@ -66,4 +73,5 @@ public interface OnlineModel {
      */
     void uploadPhotosAndMergePDF(List<Uri> uriList);
 
+    void uploadPhotosAndRecognizeAndMergePDF(List<Uri> uriList);
 }

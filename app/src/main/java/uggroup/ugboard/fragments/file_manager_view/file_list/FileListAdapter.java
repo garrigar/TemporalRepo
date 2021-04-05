@@ -19,12 +19,14 @@ public class FileListAdapter extends BaseAdapter implements LoggedInstance {
 
     private Context context;
     private List<String> fileNames;
+    private List<String> fileTypes;
     private final String defaultLogTag = "FileListAdapter";
     private String logTag = this.defaultLogTag;
 
     public FileListAdapter(Context context) {
         // Fill out the field with empty list for the first time in order to avoid exception
-        this.fileNames = new ArrayList<String>();
+        this.fileNames = new ArrayList<>();
+        this.fileTypes = new ArrayList<>();
         this.context = context;
 
         Log.i(this.logTag, "FileListAdapter is created");
@@ -33,6 +35,11 @@ public class FileListAdapter extends BaseAdapter implements LoggedInstance {
     public void setFileNames(List<String> fileNames) {
         this.fileNames = fileNames;
         Log.i(this.logTag, "setFileNames call");
+    }
+
+    public void setFileTypes(List<String> fileTypes) {
+        this.fileTypes = fileTypes;
+        Log.i(this.logTag, "setFileTypes call");
     }
 
     @Override
@@ -58,6 +65,7 @@ public class FileListAdapter extends BaseAdapter implements LoggedInstance {
         Log.i(this.logTag, "getView call, position " + String.valueOf(position));
         FileView view = new FileViewImpl(this.context, null);
         view.setName(this.fileNames.get(position));
+        view.setType(this.fileTypes.get(position));
         return view.getRootView();
     }
 

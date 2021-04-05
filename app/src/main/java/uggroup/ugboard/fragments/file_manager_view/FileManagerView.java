@@ -7,6 +7,7 @@ import uggroup.ugboard.fragments.file_manager_view.option_menu_dialog.OptionsMen
 
 public interface FileManagerView extends CoreView, OptionsMenuDialog {
     void setFileList(List<String> fileNames);
+    void setFileTypesList(List<String> fileTypes);
     void setOptionsList(List<String> fileOptions);
     void setFolderName(String name);
 
@@ -31,4 +32,6 @@ public interface FileManagerView extends CoreView, OptionsMenuDialog {
     interface GetBackListener {
         void onGetBack();
     }
+
+    void setUpdatingState(boolean state);
 }
